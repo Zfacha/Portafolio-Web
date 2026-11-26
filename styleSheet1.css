@@ -1,0 +1,462 @@
+﻿/* =========================================================
+   VARIABLES & CONFIGURACIÓN GENERAL
+   ========================================================= */
+:root {
+    --bg-dark: #050609;
+    --text-main: #f5f7fa;
+    --text-muted: #cbd5e1;
+    /* Player 1: Fuego / Dorado */
+    --p1-color: #ff9d00;
+    --p1-glow: rgba(255, 145, 0, 0.55);
+    /* Player 2: Hielo / Cian */
+    --p2-color: #00d4ff;
+    --p2-glow: rgba(0, 204, 255, 0.55);
+    --font-epic: 'Cinzel', serif;
+    --font-arcade: 'Orbitron', sans-serif;
+    --font-tech: 'Rajdhani', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: var(--font-tech);
+    overflow: hidden;
+    user-select: none;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* =========================================================
+   BARRA SUPERIOR
+   ========================================================= */
+.top-bar {
+    position: relative;
+    z-index: 30;
+    text-align: center;
+    padding: 14px 20px 12px;
+    background: linear-gradient(180deg, rgba(5, 7, 11, 0.96) 0%, rgba(5, 7, 11, 0.82) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8);
+}
+
+    .top-bar h1 {
+        font-family: var(--font-epic);
+        font-size: clamp(1.25rem, 2.5vw, 2rem);
+        font-weight: 900;
+        letter-spacing: 4px;
+        background: linear-gradient(180deg, #fff6d1 0%, #f5c242 50%, #b87a00 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 2px 10px rgba(255, 180, 0, 0.35));
+    }
+
+.subtitle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+.deco-line {
+    width: 65px;
+    height: 1px;
+}
+
+    .deco-line.left {
+        background: linear-gradient(90deg, transparent, var(--p1-color));
+    }
+
+    .deco-line.right {
+        background: linear-gradient(90deg, var(--p2-color), transparent);
+    }
+
+.subtitle {
+    font-family: var(--font-arcade);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 5px;
+    color: #e2e8f0;
+}
+
+/* =========================================================
+   CONTENEDOR PRINCIPAL CON BANNER COMPLETO
+   ========================================================= */
+.vs-container {
+    position: relative;
+    flex: 1;
+    display: flex;
+    width: 100%;
+    overflow: hidden;
+    background-color: #07090e;
+}
+
+/* Imagen panorámica completa (Steven izquierda, Dragón centro, Pancho derecha) */
+.banner-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+    z-index: 1;
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease;
+}
+
+/* Desplazamiento sutil de cámara hacia el luchador seleccionado */
+.vs-container.focus-p1 .banner-bg {
+    transform: scale(1.04) translateX(1.2%);
+}
+
+.vs-container.focus-p2 .banner-bg {
+    transform: scale(1.04) translateX(-1.2%);
+}
+
+/* Viñeta inferior para que los textos resalten sin tapar la imagen */
+.banner-vignette {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(5, 6, 9, 0.32) 0%, transparent 25%, transparent 62%, rgba(5, 6, 9, 0.88) 100%), radial-gradient(circle at center, transparent 52%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+/* =========================================================
+   ZONAS DE SELECCIÓN (IZQUIERDA Y DERECHA)
+   ========================================================= */
+.fighter-zone {
+    position: relative;
+    flex: 1;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 28px 24px 32px;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.particle-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+}
+
+/* Capa que oscurece al rival cuando seleccionas el lado opuesto */
+.zone-shade {
+    position: absolute;
+    inset: 0;
+    background: rgba(4, 6, 10, 0);
+    transition: background 0.4s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.vs-container.focus-p1 .player-2 .zone-shade,
+.vs-container.focus-p2 .player-1 .zone-shade {
+    background: rgba(4, 6, 10, 0.58);
+}
+
+/* Resplandor lateral al hacer hover */
+.zone-glow {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.player-1 .zone-glow {
+    background: radial-gradient(circle at 38% 50%, rgba(255, 145, 0, 0.22), transparent 68%);
+    box-shadow: inset 4px 0 32px rgba(255, 145, 0, 0.35);
+}
+
+.player-2 .zone-glow {
+    background: radial-gradient(circle at 62% 50%, rgba(0, 212, 255, 0.22), transparent 68%);
+    box-shadow: inset -4px 0 32px rgba(0, 212, 255, 0.35);
+}
+
+.fighter-zone:hover .zone-glow,
+.fighter-zone.is-active .zone-glow {
+    opacity: 1;
+}
+
+/* =========================================================
+   MARCO SELECTOR DE ESQUINAS ARCADE
+   ========================================================= */
+.selector-frame {
+    position: absolute;
+    inset: 18px;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0;
+    transform: scale(0.97);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.fighter-zone:hover .selector-frame,
+.fighter-zone.is-active .selector-frame {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.selector-frame .corner {
+    position: absolute;
+    width: 26px;
+    height: 26px;
+    border: 3px solid;
+}
+
+.player-1 .selector-frame .corner {
+    border-color: var(--p1-color);
+    filter: drop-shadow(0 0 8px var(--p1-color));
+}
+
+.player-2 .selector-frame .corner {
+    border-color: var(--p2-color);
+    filter: drop-shadow(0 0 8px var(--p2-color));
+}
+
+.corner.tl {
+    top: 0;
+    left: 0;
+    border-right: none;
+    border-bottom: none;
+}
+
+.corner.tr {
+    top: 0;
+    right: 0;
+    border-left: none;
+    border-bottom: none;
+}
+
+.corner.bl {
+    bottom: 0;
+    left: 0;
+    border-right: none;
+    border-top: none;
+}
+
+.corner.br {
+    bottom: 0;
+    right: 0;
+    border-left: none;
+    border-top: none;
+}
+
+/* =========================================================
+   HUD LIMPIO DE PLAYER 1 Y PLAYER 2 (SIN ESTADÍSTICAS)
+   ========================================================= */
+.fighter-hud {
+    position: relative;
+    z-index: 8;
+    text-align: center;
+    padding: 16px 28px;
+    min-width: 270px;
+    background: rgba(8, 11, 17, 0.72);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    transition: transform 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, background 0.35s ease;
+}
+
+.player-1:hover .fighter-hud,
+.player-1.is-active .fighter-hud {
+    transform: translateY(-6px) scale(1.03);
+    background: rgba(14, 11, 8, 0.88);
+    border-color: var(--p1-color);
+    box-shadow: 0 12px 32px rgba(255, 145, 0, 0.35);
+}
+
+.player-2:hover .fighter-hud,
+.player-2.is-active .fighter-hud {
+    transform: translateY(-6px) scale(1.03);
+    background: rgba(7, 13, 20, 0.88);
+    border-color: var(--p2-color);
+    box-shadow: 0 12px 32px rgba(0, 212, 255, 0.35);
+}
+
+.player-tag {
+    display: inline-block;
+    font-family: var(--font-arcade);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 3px;
+    padding: 3px 10px;
+    margin-bottom: 6px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.player-1 .player-tag {
+    color: var(--p1-color);
+}
+
+.player-2 .player-tag {
+    color: var(--p2-color);
+}
+
+.fighter-name {
+    font-family: var(--font-epic);
+    font-size: clamp(1.8rem, 2.8vw, 2.45rem);
+    font-weight: 900;
+    letter-spacing: 4px;
+    line-height: 1.05;
+    margin-bottom: 4px;
+}
+
+.player-1 .fighter-name {
+    color: #fff6e5;
+    text-shadow: 0 0 18px rgba(255, 157, 0, 0.8);
+}
+
+.player-2 .fighter-name {
+    color: #e6f9ff;
+    text-shadow: 0 0 18px rgba(0, 212, 255, 0.8);
+}
+
+.fighter-role {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+}
+
+.select-btn {
+    display: inline-block;
+    width: 100%;
+    padding: 9px 18px;
+    font-family: var(--font-arcade);
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 2.5px;
+    border: 1px solid;
+    transition: all 0.3s ease;
+}
+
+.player-1 .select-btn {
+    color: var(--p1-color);
+    border-color: var(--p1-color);
+    background: rgba(255, 157, 0, 0.1);
+}
+
+.player-2 .select-btn {
+    color: var(--p2-color);
+    border-color: var(--p2-color);
+    background: rgba(0, 212, 255, 0.1);
+}
+
+.player-1:hover .select-btn,
+.player-1.is-active .select-btn {
+    background: var(--p1-color);
+    color: #08090c;
+    box-shadow: 0 0 20px var(--p1-glow);
+}
+
+.player-2:hover .select-btn,
+.player-2.is-active .select-btn {
+    background: var(--p2-color);
+    color: #08090c;
+    box-shadow: 0 0 20px var(--p2-glow);
+}
+
+/* =========================================================
+   PIE DE PÁGINA
+   ========================================================= */
+.bottom-bar {
+    position: relative;
+    z-index: 30;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 26px;
+    background: rgba(5, 7, 11, 0.95);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.85rem;
+    color: #94a3b8;
+}
+
+.controls-hint {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-arcade);
+    font-size: 0.65rem;
+    letter-spacing: 1.5px;
+}
+
+    .controls-hint kbd {
+        padding: 2px 6px;
+        font-family: var(--font-arcade);
+        font-size: 0.62rem;
+        color: #ffffff;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        border-radius: 3px;
+    }
+
+    .controls-hint .sep {
+        margin: 0 6px;
+        opacity: 0.35;
+    }
+
+/* =========================================================
+   RESPONSIVO (MÓVILES Y TABLETS)
+   ========================================================= */
+@media (max-width: 768px) {
+    html, body {
+        overflow-y: auto;
+    }
+
+    .vs-container {
+        min-height: 520px;
+    }
+
+    .banner-bg {
+        object-position: center center;
+    }
+
+    .fighter-hud {
+        min-width: auto;
+        width: 100%;
+        padding: 12px 10px;
+    }
+
+    .fighter-name {
+        font-size: 1.35rem;
+        letter-spacing: 2px;
+    }
+
+    .select-btn {
+        font-size: 0.65rem;
+        padding: 8px 6px;
+        letter-spacing: 1px;
+    }
+
+    .bottom-bar {
+        justify-content: center;
+        text-align: center;
+    }
+}
